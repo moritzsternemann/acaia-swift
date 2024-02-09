@@ -4,6 +4,18 @@ public final class AcaiaValueDecoder {
 
     public init() {}
 
+    public func decodeValue(from data: [UInt8]) throws -> AcaiaValue {
+        let rawValue = try decodeRawValue(from: data)
+
+        switch rawValue.type {
+        case .scaleStatus:
+            let status = decodeScaleStatus(from: rawValue.payload)
+            return .scaleStatus(status)
+        case .event:
+            fatalError()
+        }
+    }
+
     // Decode the raw value bytes, verifying length, checksum, and known value type
     private func decodeRawValue(from data: [UInt8]) throws -> AcaiaRawValue {
         // Check for minimum packet length: 2x header, type, length, 2x checksum
@@ -36,6 +48,61 @@ public final class AcaiaValueDecoder {
         return AcaiaRawValue(
             type: valueType,
             payload: Array(payloadForChecksum.dropFirst()) // drop length byte
+        )
+    }
+}
+
+extension AcaiaValueDecoder {
+    private func decodeScaleStatus(from payload: [UInt8]) -> ScaleStatus {
+        precondition(payload.count == 8, "the scale status payload is expected to be 8 bytes")
+
+        // [0], lower nibble: battery level
+        let batteryLevel = Double(payload[0] & 0x7F) / 100.0
+
+        // [0], upper nibble: msb timer, other bits unknown
+        let isTimerRunning = payload[0] & 0x80 == 0x80
+
+        // [1]: weight unit
+        // TODO: fallback or error?
+        let weightUnit: ScaleStatus.WeightUnit? = switch payload[1] {
+        case 2: .grams
+        case 5: .ounces
+        default: nil
+        }
+
+        // [2]: mode
+        // TODO: fallback or error?
+        let mode = ScaleStatus.Mode(rawValue: payload[2])
+
+        // [3]: sleep timer
+        let sleepTimer: Int? = switch payload[3] {
+        case 0: nil
+        case 1: 5
+        case 2: 10
+        case 3: 20
+        case 4: 30
+        case 5: 60
+        default: nil
+        }
+
+        // [4]: unknown
+
+        // [5]: beep on
+        let isBeepOn = payload[5] == 1
+
+        // [6]: weighing resolution high or default
+        let isResolutionHigh = !(payload[6] == 1)
+
+        // [7]: unknown
+
+        return ScaleStatus(
+            batteryLevel: batteryLevel,
+            isTimerRunning: isTimerRunning,
+            weightUnit: weightUnit,
+            mode: mode,
+            sleepTimer: sleepTimer,
+            isBeepOn: isBeepOn,
+            isResolutionHigh: isResolutionHigh
         )
     }
 }

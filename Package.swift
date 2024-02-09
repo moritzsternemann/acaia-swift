@@ -12,5 +12,9 @@ let package = Package(
     ],
     targets: [
         .target(name: "AcaiaProtocol"),
+        .testTarget(
+            name: "AcaiaProtocolTests",
+            dependencies: ["AcaiaProtocol"]
+        ),
     ]
 )
