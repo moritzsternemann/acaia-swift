@@ -1,3 +1,5 @@
+import Darwin
+
 public final class AcaiaValueDecoder {
     private static let headerByte1: UInt8 = 0xEF
     private static let headerByte2: UInt8 = 0xDD
@@ -12,7 +14,7 @@ public final class AcaiaValueDecoder {
             let status = decodeScaleStatus(from: rawValue.payload)
             return .scaleStatus(status)
         case .event:
-            fatalError()
+            return try decodeEvent(from: rawValue.payload)
         }
     }
 
@@ -108,10 +110,51 @@ extension AcaiaValueDecoder {
 }
 
 extension AcaiaValueDecoder {
+    private func decodeEvent(from payload: [UInt8]) throws -> AcaiaValue {
+        let valuePayload = Array(payload.dropFirst())
+
+        switch payload[0] {
+        case 0x05:
+            // weight updated event
+            let weight = decodeWeightEvent(from: valuePayload)
+            return .weight(weight)
+        default:
+            throw DecodingError.unknownEvent(payload[0])
+        }
+    }
+
+    private func decodeWeightEvent(from payload: [UInt8]) -> WeigthValue {
+        precondition(payload.count == 6, "the weight event payload is expected to be 6 bytes")
+
+        let wholeNumberValue = [
+            Int(payload[2]) << 16,
+            Int(payload[1]) << 8,
+            Int(payload[0])
+        ].reduce(0, +)
+
+        // [3]: unknown
+
+        let valueMagnitude = payload[4]
+        precondition(valueMagnitude <= 4, "unexpected value magnitude: \(valueMagnitude)")
+        
+        let unsignedValue = Double(wholeNumberValue) * pow(10, -Double(valueMagnitude))
+
+        let isStable = payload[5] & 0x01 == 0
+        let isValueNegative = payload[5] & 0x02 == 0x02
+
+        return WeigthValue(
+            weight: isValueNegative ? unsignedValue * -1 : unsignedValue,
+            isStable: isStable
+        )
+    }
+}
+
+extension AcaiaValueDecoder {
     enum DecodingError: Error {
         case notEnoughData
         case invalidHeader
         case invalidChecksum
         case unknownType(UInt8)
+        case unknownEvent(UInt8)
     }
 }

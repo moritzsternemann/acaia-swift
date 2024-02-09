@@ -25,6 +25,22 @@ final class AcaiaValueDecoderTests: XCTestCase {
         ))
     }
 
+    func testDecodeWeightEvent() throws {
+        // Arrange
+        let data = payload(type: 0x0C, [0x05, 0, 0, 0, 0, 0, 0])
+
+        // Act
+        let value = try decoder.decodeValue(from: data)
+
+        // Assert
+        let weight = assertDecodeWeight(value)
+
+        XCTAssertEqual(weight, WeigthValue(
+            weight: 0.0,
+            isStable: true
+        ))
+    }
+
     private func payload(type: UInt8, _ payload: [UInt8]) -> [UInt8] {
         let payloadForChecksum = [UInt8(payload.count + 1)] + payload
         let checksum = AcaiaChecksum.compute(for: payloadForChecksum)
@@ -39,6 +55,15 @@ final class AcaiaValueDecoderTests: XCTestCase {
 
         return status
     }
+
+    private func assertDecodeWeight(_ value: AcaiaValue, file: StaticString = #file, line: UInt = #line) -> WeigthValue {
+        guard case let .weight(weight) = value else {
+            XCTFail("expected to decode .weight value")
+            fatalError()
+        }
+
+        return weight
+    }
 }
 
 extension ScaleStatus: Equatable {
@@ -50,5 +75,12 @@ extension ScaleStatus: Equatable {
             && lhs.sleepTimer == rhs.sleepTimer
             && lhs.isBeepOn == rhs.isBeepOn
             && lhs.isResolutionHigh && rhs.isResolutionHigh
+    }
+}
+
+extension WeigthValue: Equatable {
+    public static func ==(lhs: WeigthValue, rhs: WeigthValue) -> Bool {
+        lhs.weight == rhs.weight
+            && lhs.isStable == rhs.isStable
     }
 }
