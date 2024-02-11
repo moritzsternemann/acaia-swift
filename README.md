@@ -11,6 +11,8 @@ The `AcaiaProtocol` library implements decoding of received values and encoding 
 The following values can be decoded:
 - Scale status (battery level, weight unit, weighing mode, etc.)
 - Weight (including stable-indicator)
+- Battery level update
+- Timer update
 
 The following commands can be encoded:
 - *none*

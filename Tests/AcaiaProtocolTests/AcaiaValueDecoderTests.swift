@@ -13,7 +13,10 @@ final class AcaiaValueDecoderTests: XCTestCase {
 
         // Assert
         XCTAssertEqual(values.count, 1)
-        let status = assertDecodeScaleStatus(values[0])
+        guard case let .scaleStatus(status) = values[0] else {
+            XCTFail("expected to decode .scaleStatus value")
+            return
+        }
 
         XCTAssertEqual(status, ScaleStatus(
             batteryLevel: 0.0,
@@ -26,7 +29,7 @@ final class AcaiaValueDecoderTests: XCTestCase {
         ))
     }
 
-    func testDecodeWeightEvent() throws {
+    func testDecodeWeightValue() throws {
         // Arrange
         let data = payload(type: 0x0C, [0x05, 0, 0, 0, 0, 0, 0])
 
@@ -35,7 +38,10 @@ final class AcaiaValueDecoderTests: XCTestCase {
 
         // Assert
         XCTAssertEqual(values.count, 1)
-        let weight = assertDecodeWeight(values[0])
+        guard case let .weight(weight) = values[0] else {
+            XCTFail("expected to decode .weight value")
+            return
+        }
 
         XCTAssertEqual(weight, WeigthValue(
             weight: 0.0,
@@ -43,28 +49,68 @@ final class AcaiaValueDecoderTests: XCTestCase {
         ))
     }
 
+    func testDecodeBatteryLevelValue() throws {
+        // Arrange
+        let data = payload(type: 0x0C, [0x06, 0x64])
+
+        // Act
+        let values = try decoder.decodeValues(from: data)
+
+        // Assert
+        XCTAssertEqual(values.count, 1)
+        guard case let .batteryLevel(batteryLevel) = values[0] else {
+            XCTFail("expected to decode .batteryLevel value")
+            return
+        }
+
+        XCTAssertEqual(batteryLevel, 1.0)
+    }
+
+    func testDecodeTimerValue() throws {
+        // Arrange
+        let data = payload(type: 0x0C, [0x07, 0x09, 0x3B, 0x02])
+
+        // Act
+        let values = try decoder.decodeValues(from: data)
+
+        // Assert
+        XCTAssertEqual(values.count, 1)
+        guard case let .timer(timer) = values[0] else {
+            XCTFail("expected to decode .timer value")
+            return
+        }
+
+        XCTAssertEqual(timer, 599.0)
+    }
+
+    func testDecodeMultipleEventValues() throws {
+        // Arrange
+        let data = payload(type: 0x0C, [0x05, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x07, 0x00, 0x00, 0x02])
+
+        // Act
+        let values = try decoder.decodeValues(from: data)
+
+        // Assert
+        XCTAssertEqual(values.count, 2)
+
+        guard case let .weight(weight) = values[0],
+              case let .timer(timer) = values[1]
+        else {
+            XCTFail("expected to decode .weight and .timer values")
+            return
+        }
+
+        XCTAssertEqual(weight, WeigthValue(
+            weight: 0.0,
+            isStable: true
+        ))
+        XCTAssertEqual(timer, 0.0)
+    }
+
     private func payload(type: UInt8, _ payload: [UInt8]) -> [UInt8] {
         let payloadForChecksum = [UInt8(payload.count + 1)] + payload
         let checksum = AcaiaChecksum.compute(for: payloadForChecksum)
         return [0xEF, 0xDD, type] + payloadForChecksum + [checksum.even, checksum.odd]
-    }
-
-    private func assertDecodeScaleStatus(_ value: AcaiaValue, file: StaticString = #file, line: UInt = #line) -> ScaleStatus {
-        guard case let .scaleStatus(status) = value else {
-            XCTFail("expected to decode .scaleStatus value")
-            fatalError()
-        }
-
-        return status
-    }
-
-    private func assertDecodeWeight(_ value: AcaiaValue, file: StaticString = #file, line: UInt = #line) -> WeigthValue {
-        guard case let .weight(weight) = value else {
-            XCTFail("expected to decode .weight value")
-            fatalError()
-        }
-
-        return weight
     }
 }
 

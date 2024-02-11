@@ -127,6 +127,18 @@ extension AcaiaValueDecoder {
                 }
                 let weight = decodeWeightValue(from: weightPayload)
                 values.append(.weight(weight))
+             case 0x06: // battery level
+                guard let batteryLevelPayload = payload.popFirst() else {
+                    throw AcaiaValueDecodingError.notEnoughData
+                }
+                let batteryLevel = decodeBatteryLevelValue(from: batteryLevelPayload)
+                values.append(.batteryLevel(batteryLevel))
+            case 0x07: // timer
+                guard let timerPayload = payload.popFirst(3) else {
+                    throw AcaiaValueDecodingError.notEnoughData
+                }
+                let timer = decodeTimerValue(from: timerPayload)
+                values.append(.timer(timer))
             default:
                 throw AcaiaUnknownEventTypeError(type: type, payload: payload)
             }
@@ -158,6 +170,20 @@ extension AcaiaValueDecoder {
             weight: isValueNegative ? unsignedValue * -1 : unsignedValue,
             isStable: isStable
         )
+    }
+
+    private func decodeBatteryLevelValue(from payload: UInt8) -> Double {
+        Double(payload) / 100.0
+    }
+
+    private func decodeTimerValue(from payload: [UInt8]) -> Double {
+        precondition(payload.count == 3, "the time payload is expected to be 3 bytes")
+
+        return [
+            Double(payload[0]) * 60.0,
+            Double(payload[1]),
+            Double(payload[2]) / 10.0
+        ].reduce(0, +) - 0.2 // 0.2 seems to be some kind of transit delay
     }
 }
 
