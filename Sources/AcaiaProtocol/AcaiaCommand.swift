@@ -2,11 +2,13 @@ public struct AcaiaCommand {
     enum CommandType {
         case heartbeat
         case authenticate
+        case notificationRequest
 
         var rawValue: UInt8 {
             return switch self {
             case .heartbeat: 0x00
             case .authenticate: 0x0B
+            case .notificationRequest: 0x0C
             }
         }
     }
@@ -30,5 +32,15 @@ extension AcaiaCommand {
         AcaiaCommand(type: .authenticate, payload: [0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0x31, 0x32, 0x33, 0x34])
 
         // Older scales require a different payload [0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d]
+    }
+
+    public static func notificationRequest() -> AcaiaCommand {
+        // Other implementations include a payload that might configure
+        // which notifications are requested. However, no configurations
+        // I tried enabled, disabled, or changed any notifications.
+        // Maybe this functionality is only present on older scales.
+
+        // 0x01 is just the payload length (including the length byte itself)
+        AcaiaCommand(type: .notificationRequest, payload: [0x01])
     }
 }

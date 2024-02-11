@@ -17,6 +17,7 @@ The following values can be decoded:
 The following commands can be encoded:
 - Heartbeat (keeps connection alive)
 - Authenticate
+- Notification request
 
 ## Credits
 
