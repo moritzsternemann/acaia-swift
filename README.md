@@ -15,7 +15,8 @@ The following values can be decoded:
 - Timer update
 
 The following commands can be encoded:
-- *none*
+- Heartbeat (keeps connection alive)
+- Authenticate
 
 ## Credits
 
