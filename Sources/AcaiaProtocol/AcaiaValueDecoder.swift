@@ -1,9 +1,6 @@
 import Darwin
 
 public final class AcaiaValueDecoder {
-    private static let headerByte1: UInt8 = 0xEF
-    private static let headerByte2: UInt8 = 0xDD
-
     public init() {}
 
     public func decodeValues(from data: [UInt8]) throws -> [AcaiaValue] {
@@ -25,7 +22,7 @@ public final class AcaiaValueDecoder {
             throw AcaiaValueDecodingError.notEnoughData
         }
 
-        guard data[0] == Self.headerByte1, data[1] == Self.headerByte2 else {
+        guard data[0] == Constants.headerByte1, data[1] == Constants.headerByte2 else {
             throw AcaiaValueDecodingError.invalidHeader
         }
 
