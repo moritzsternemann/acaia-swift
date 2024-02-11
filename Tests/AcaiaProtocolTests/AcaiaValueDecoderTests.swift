@@ -9,10 +9,11 @@ final class AcaiaValueDecoderTests: XCTestCase {
         let data = payload(type: 0x08, [0, 0, 0, 0, 0, 0, 0, 0])
 
         // Act
-        let value = try decoder.decodeValue(from: data)
+        let values = try decoder.decodeValues(from: data)
 
         // Assert
-        let status = assertDecodeScaleStatus(value)
+        XCTAssertEqual(values.count, 1)
+        let status = assertDecodeScaleStatus(values[0])
 
         XCTAssertEqual(status, ScaleStatus(
             batteryLevel: 0.0,
@@ -30,10 +31,11 @@ final class AcaiaValueDecoderTests: XCTestCase {
         let data = payload(type: 0x0C, [0x05, 0, 0, 0, 0, 0, 0])
 
         // Act
-        let value = try decoder.decodeValue(from: data)
+        let values = try decoder.decodeValues(from: data)
 
         // Assert
-        let weight = assertDecodeWeight(value)
+        XCTAssertEqual(values.count, 1)
+        let weight = assertDecodeWeight(values[0])
 
         XCTAssertEqual(weight, WeigthValue(
             weight: 0.0,

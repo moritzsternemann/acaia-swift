@@ -6,13 +6,13 @@ public final class AcaiaValueDecoder {
 
     public init() {}
 
-    public func decodeValue(from data: [UInt8]) throws -> AcaiaValue {
+    public func decodeValues(from data: [UInt8]) throws -> [AcaiaValue] {
         let rawValue = try decodeRawValue(from: data)
 
         switch rawValue.type {
         case .scaleStatus:
             let status = decodeScaleStatus(from: rawValue.payload)
-            return .scaleStatus(status)
+            return [.scaleStatus(status)]
         case .event:
             return try decodeEvent(from: rawValue.payload)
         }
@@ -110,20 +110,32 @@ extension AcaiaValueDecoder {
 }
 
 extension AcaiaValueDecoder {
-    private func decodeEvent(from payload: [UInt8]) throws -> AcaiaValue {
-        let valuePayload = Array(payload.dropFirst())
+    private func decodeEvent(from payload: [UInt8]) throws -> [AcaiaValue] {
+        var payload = payload
 
-        switch payload[0] {
-        case 0x05:
-            // weight updated event
-            let weight = decodeWeightEvent(from: valuePayload)
-            return .weight(weight)
-        default:
-            throw DecodingError.unknownEvent(payload[0])
+        // a single event can have multiple value-updates, e.g.
+        // [05 00 00 00 00 01 00] [07 00 00 02] (weight + timer)
+
+        var values: [AcaiaValue] = []
+        while !payload.isEmpty {
+            let type = payload.removeFirst()
+
+            switch type {
+            case 0x05: // weight
+                guard let weightPayload = payload.popFirst(6) else {
+                    throw DecodingError.notEnoughData
+                }
+                let weight = decodeWeightValue(from: weightPayload)
+                values.append(.weight(weight))
+            default:
+                throw DecodingError.unknownEvent(payload[0])
+            }
         }
+
+        return values
     }
 
-    private func decodeWeightEvent(from payload: [UInt8]) -> WeigthValue {
+    private func decodeWeightValue(from payload: [UInt8]) -> WeigthValue {
         precondition(payload.count == 6, "the weight event payload is expected to be 6 bytes")
 
         let wholeNumberValue = [
