@@ -22,11 +22,11 @@ public final class AcaiaValueDecoder {
     private func decodeRawValue(from data: [UInt8]) throws -> AcaiaRawValue {
         // Check for minimum packet length: 2x header, type, length, 2x checksum
         guard data.count >= 6 else {
-            throw DecodingError.notEnoughData
+            throw AcaiaValueDecodingError.notEnoughData
         }
 
         guard data[0] == Self.headerByte1, data[1] == Self.headerByte2 else {
-            throw DecodingError.invalidHeader
+            throw AcaiaValueDecodingError.invalidHeader
         }
 
         let type = data[2]
@@ -34,17 +34,17 @@ public final class AcaiaValueDecoder {
 
         // header1, header2, type + payload + checksum1, checksum2
         guard data.count >= (3 + payloadLength + 2) else {
-            throw DecodingError.notEnoughData
+            throw AcaiaValueDecodingError.notEnoughData
         }
 
         let payloadForChecksum = data[3..<(3 + payloadLength)]
         let packetChecksum = (data[3 + payloadLength + 1], data[3 + payloadLength])
         guard AcaiaChecksum.verify(for: payloadForChecksum, reference: packetChecksum) else {
-            throw DecodingError.invalidChecksum
+            throw AcaiaValueDecodingError.invalidChecksum
         }
 
         guard let valueType = AcaiaRawValue.ValueType(type) else {
-            throw DecodingError.unknownType(type)
+            throw AcaiaUnknownPacketTypeError(type: type, payload: Array(payloadForChecksum.dropFirst()))
         }
 
         return AcaiaRawValue(
@@ -123,12 +123,12 @@ extension AcaiaValueDecoder {
             switch type {
             case 0x05: // weight
                 guard let weightPayload = payload.popFirst(6) else {
-                    throw DecodingError.notEnoughData
+                    throw AcaiaValueDecodingError.notEnoughData
                 }
                 let weight = decodeWeightValue(from: weightPayload)
                 values.append(.weight(weight))
             default:
-                throw DecodingError.unknownEvent(payload[0])
+                throw AcaiaUnknownEventTypeError(type: type, payload: payload)
             }
         }
 
@@ -161,12 +161,18 @@ extension AcaiaValueDecoder {
     }
 }
 
-extension AcaiaValueDecoder {
-    enum DecodingError: Error {
-        case notEnoughData
-        case invalidHeader
-        case invalidChecksum
-        case unknownType(UInt8)
-        case unknownEvent(UInt8)
-    }
+public enum AcaiaValueDecodingError: Error {
+    case notEnoughData
+    case invalidHeader
+    case invalidChecksum
+}
+
+public struct AcaiaUnknownPacketTypeError: Error {
+    public let type: UInt8
+    public let payload: [UInt8]
+}
+
+public struct AcaiaUnknownEventTypeError: Error {
+    public let type: UInt8
+    public let payload: [UInt8]
 }
