@@ -5,6 +5,7 @@ public struct AcaiaCommand {
         case notificationRequest
 
         case statusRequest
+        case tare
 
         var rawValue: UInt8 {
             return switch self {
@@ -12,6 +13,7 @@ public struct AcaiaCommand {
             case .authenticate: 0x0B
             case .notificationRequest: 0x0C
             case .statusRequest: 0x06
+            case .tare: 0x04
             }
         }
     }
@@ -54,5 +56,11 @@ extension AcaiaCommand {
         // this is required or if the payload encodes any request options.
         // Sending no payload results in a response with the same information.
         AcaiaCommand(type: .statusRequest, payload: [])
+    }
+
+    public static func tare() -> AcaiaCommand {
+        // Didn't notice any different behavior with different payloads.
+        // It has to be a single byte though.
+        AcaiaCommand(type: .tare, payload: [0x00])
     }
 }

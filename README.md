@@ -19,6 +19,7 @@ The following commands can be encoded:
 - Authenticate
 - Notification request
 - Status request
+- Tare
 
 ## Credits
 
