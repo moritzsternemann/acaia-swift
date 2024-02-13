@@ -6,6 +6,7 @@ public struct AcaiaCommand {
 
         case statusRequest
         case tare
+        case timer
 
         var rawValue: UInt8 {
             return switch self {
@@ -14,6 +15,7 @@ public struct AcaiaCommand {
             case .notificationRequest: 0x0C
             case .statusRequest: 0x06
             case .tare: 0x04
+            case .timer: 0x0D
             }
         }
     }
@@ -62,5 +64,17 @@ extension AcaiaCommand {
         // Didn't notice any different behavior with different payloads.
         // It has to be a single byte though.
         AcaiaCommand(type: .tare, payload: [0x00])
+    }
+
+    public static func startTimer() -> AcaiaCommand {
+        AcaiaCommand(type: .timer, payload: [0x00, 0x00])
+    }
+
+    public static func pauseTimer() -> AcaiaCommand {
+        AcaiaCommand(type: .timer, payload: [0x00, 0x02])
+    }
+
+    public static func resetTimer() -> AcaiaCommand {
+        AcaiaCommand(type: .timer, payload: [0x00, 0x01])
     }
 }

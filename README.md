@@ -20,6 +20,9 @@ The following commands can be encoded:
 - Notification request
 - Status request
 - Tare
+- Start timer
+- Pause timer
+- Reset timer
 
 ## Credits
 
