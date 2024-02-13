@@ -18,6 +18,7 @@ The following commands can be encoded:
 - Heartbeat (keeps connection alive)
 - Authenticate
 - Notification request
+- Status request
 
 ## Credits
 

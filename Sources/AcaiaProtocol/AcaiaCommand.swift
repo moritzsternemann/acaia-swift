@@ -4,11 +4,14 @@ public struct AcaiaCommand {
         case authenticate
         case notificationRequest
 
+        case statusRequest
+
         var rawValue: UInt8 {
             return switch self {
             case .heartbeat: 0x00
             case .authenticate: 0x0B
             case .notificationRequest: 0x0C
+            case .statusRequest: 0x06
             }
         }
     }
@@ -42,5 +45,14 @@ extension AcaiaCommand {
 
         // 0x01 is just the payload length (including the length byte itself)
         AcaiaCommand(type: .notificationRequest, payload: [0x01])
+    }
+}
+
+extension AcaiaCommand {
+    public static func statusRequest() -> AcaiaCommand {
+        // Other implementations send 16 0-bytes as the payload. Not sure if
+        // this is required or if the payload encodes any request options.
+        // Sending no payload results in a response with the same information.
+        AcaiaCommand(type: .statusRequest, payload: [])
     }
 }

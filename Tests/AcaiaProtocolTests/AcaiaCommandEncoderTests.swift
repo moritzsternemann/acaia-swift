@@ -27,4 +27,12 @@ final class AcaiaCommandEncoderTests: XCTestCase {
         // Assert
         XCTAssertEqual(data, [0xEF, 0xDD, 0x0C, 0x01, 0x01, 0x00])
     }
+
+    func testEncodeStatusRequest() {
+        // Act
+        let data = encoder.encodeCommand(.statusRequest())
+
+        // Assert
+        XCTAssertEqual(data, [0xEF, 0xDD, 0x06, 0x00, 0x00])
+    }
 }
