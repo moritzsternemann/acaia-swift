@@ -3,4 +3,5 @@ public enum AcaiaValue {
     case weight(Weight)
     case batteryLevel(Double)
     case timer(Double)
+    case action(Action)
 }

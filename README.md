@@ -13,6 +13,7 @@ The following values can be decoded:
 - Weight (including stable-indicator)
 - Battery level update
 - Timer update
+- Actions (start timer, reset timer, pause timer)
 
 The following commands can be encoded:
 - Heartbeat (keeps connection alive)

@@ -112,6 +112,7 @@ extension AcaiaValueDecoder {
 
         // a single event can have multiple value-updates, e.g.
         // [05 00 00 00 00 01 00] [07 00 00 02] (weight + timer)
+        // [08 08] [05 00 00 00 00 01 00] [07 00 00 02] (action + weight + timer)
 
         var values: [AcaiaValue] = []
         while !payload.isEmpty {
@@ -136,6 +137,12 @@ extension AcaiaValueDecoder {
                 }
                 let timer = decodeTimerValue(from: timerPayload)
                 values.append(.timer(timer))
+            case 0x08: // action
+                guard let actionPayload = payload.popFirst() else {
+                    throw AcaiaValueDecodingError.notEnoughData
+                }
+                let action = try decodeActionValue(from: actionPayload)
+                values.append(.action(action))
             default:
                 throw AcaiaUnknownEventTypeError(type: type, payload: payload)
             }
@@ -182,6 +189,16 @@ extension AcaiaValueDecoder {
             Double(payload[2]) / 10.0
         ].reduce(0, +) - 0.2 // 0.2 seems to be some kind of transit delay
     }
+
+    private func decodeActionValue(from action: UInt8) throws -> AcaiaValue.Action {
+        return switch action {
+        case 0x08: .startTimer
+        case 0x09: .resetTimer
+        case 0x0A: .pauseTimer
+        default:
+            throw AcaiaUnknownActionError(action: action)
+        }
+    }
 }
 
 public enum AcaiaValueDecodingError: Error {
@@ -198,4 +215,8 @@ public struct AcaiaUnknownPacketTypeError: Error {
 public struct AcaiaUnknownEventTypeError: Error {
     public let type: UInt8
     public let payload: [UInt8]
+}
+
+public struct AcaiaUnknownActionError: Error {
+    public let action: UInt8
 }
