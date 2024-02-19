@@ -18,7 +18,7 @@ final class AcaiaValueDecoderTests: XCTestCase {
             return
         }
 
-        XCTAssertEqual(status, ScaleStatus(
+        XCTAssertEqual(status, AcaiaValue.Status(
             batteryLevel: 0.0,
             isTimerRunning: false,
             weightUnit: nil,
@@ -43,7 +43,7 @@ final class AcaiaValueDecoderTests: XCTestCase {
             return
         }
 
-        XCTAssertEqual(weight, WeigthValue(
+        XCTAssertEqual(weight, AcaiaValue.Weight(
             weight: 0.0,
             isStable: true
         ))
@@ -100,7 +100,7 @@ final class AcaiaValueDecoderTests: XCTestCase {
             return
         }
 
-        XCTAssertEqual(weight, WeigthValue(
+        XCTAssertEqual(weight, AcaiaValue.Weight(
             weight: 0.0,
             isStable: true
         ))
@@ -114,8 +114,8 @@ final class AcaiaValueDecoderTests: XCTestCase {
     }
 }
 
-extension ScaleStatus: Equatable {
-    public static func ==(lhs: ScaleStatus, rhs: ScaleStatus) -> Bool {
+extension AcaiaValue.Status: Equatable {
+    public static func ==(lhs: AcaiaValue.Status, rhs: AcaiaValue.Status) -> Bool {
         lhs.batteryLevel == rhs.batteryLevel
             && lhs.isTimerRunning == rhs.isTimerRunning
             && lhs.weightUnit == rhs.weightUnit
@@ -126,8 +126,8 @@ extension ScaleStatus: Equatable {
     }
 }
 
-extension WeigthValue: Equatable {
-    public static func ==(lhs: WeigthValue, rhs: WeigthValue) -> Bool {
+extension AcaiaValue.Weight: Equatable {
+    public static func ==(lhs: AcaiaValue.Weight, rhs: AcaiaValue.Weight) -> Bool {
         lhs.weight == rhs.weight
             && lhs.isStable == rhs.isStable
     }

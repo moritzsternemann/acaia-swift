@@ -1,6 +1,6 @@
 public enum AcaiaValue {
-    case scaleStatus(ScaleStatus)
-    case weight(WeigthValue)
+    case scaleStatus(Status)
+    case weight(Weight)
     case batteryLevel(Double)
     case timer(Double)
 }

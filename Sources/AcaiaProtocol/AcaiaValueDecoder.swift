@@ -52,7 +52,7 @@ public final class AcaiaValueDecoder {
 }
 
 extension AcaiaValueDecoder {
-    private func decodeScaleStatus(from payload: [UInt8]) -> ScaleStatus {
+    private func decodeScaleStatus(from payload: [UInt8]) -> AcaiaValue.Status {
         precondition(payload.count == 8, "the scale status payload is expected to be 8 bytes")
 
         // [0], lower nibble: battery level
@@ -63,7 +63,7 @@ extension AcaiaValueDecoder {
 
         // [1]: weight unit
         // TODO: fallback or error?
-        let weightUnit: ScaleStatus.WeightUnit? = switch payload[1] {
+        let weightUnit: AcaiaValue.Status.WeightUnit? = switch payload[1] {
         case 2: .grams
         case 5: .ounces
         default: nil
@@ -71,7 +71,7 @@ extension AcaiaValueDecoder {
 
         // [2]: mode
         // TODO: fallback or error?
-        let mode = ScaleStatus.Mode(rawValue: payload[2])
+        let mode = AcaiaValue.Status.Mode(rawValue: payload[2])
 
         // [3]: sleep timer
         let sleepTimer: Int? = switch payload[3] {
@@ -94,7 +94,7 @@ extension AcaiaValueDecoder {
 
         // [7]: unknown
 
-        return ScaleStatus(
+        return AcaiaValue.Status(
             batteryLevel: batteryLevel,
             isTimerRunning: isTimerRunning,
             weightUnit: weightUnit,
@@ -144,7 +144,7 @@ extension AcaiaValueDecoder {
         return values
     }
 
-    private func decodeWeightValue(from payload: [UInt8]) -> WeigthValue {
+    private func decodeWeightValue(from payload: [UInt8]) -> AcaiaValue.Weight {
         precondition(payload.count == 6, "the weight event payload is expected to be 6 bytes")
 
         let wholeNumberValue = [
@@ -163,7 +163,7 @@ extension AcaiaValueDecoder {
         let isStable = payload[5] & 0x01 == 0
         let isValueNegative = payload[5] & 0x02 == 0x02
 
-        return WeigthValue(
+        return AcaiaValue.Weight(
             weight: isValueNegative ? unsignedValue * -1 : unsignedValue,
             isStable: isStable
         )
